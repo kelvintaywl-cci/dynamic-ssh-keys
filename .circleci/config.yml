@@ -26,7 +26,7 @@ jobs:
             SSH_PRIVATE_KEY_ONELINE=$(awk -v ORS='\\n' '1' throwaway)
             SSH_KEY_HOSTNAME=example.com
             # create JSON payload
-            jq --null-input --arg key $SSH_PRIVATE_KEY_ONELINE '.private_key=$key' | jq --arg host $SSH_KEY_HOSTNAME '.hostname=$host' > payload.json
+            jq --null-input --arg key "$SSH_PRIVATE_KEY_ONELINE" '.private_key=$key' | jq --arg host "$SSH_KEY_HOSTNAME" '.hostname=$host' > payload.json
 
             curl -H "Circle-Token: $CIRCLE_TOKEN" \
               -H "Content-Type: application/json" \
@@ -37,12 +37,12 @@ jobs:
           name: get fingerprint and make payload for continued config
           command: |
             SSH_KEY_HOSTNAME=example.com
-            FINGERPRINT=$(curl -s -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/settings" | jq -r --arg host $SSH_KEY_HOSTNAME '.ssh_keys| map(select(.hostname == $host)) | .[0].fingerprint')
+            FINGERPRINT=$(curl -s -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/settings" | jq -r --arg host "$SSH_KEY_HOSTNAME" '.ssh_keys| map(select(.hostname == $host)) | .[0].fingerprint')
             
             echo "fingerprint = ${FINGERPRINT}"
 
             # make JSON payload for continuation
-            jq --null-input --arg fingerprint $FINGERPRINT '.fingerprint=$fingerprint' > parameters.json
+            jq --null-input --arg fingerprint "$FINGERPRINT" '.fingerprint=$fingerprint' > parameters.json
 
             # check
             jq '.' parameters.json
