@@ -19,6 +19,7 @@ jobs:
           fingerprints:
             - << parameters.ssh_key_fingerprint >>
       - run: echo "do something with this key"
+      - run: ls -lah $HOME/.ssh/
       - run:
           name: delete SSH key when done
           command: |
