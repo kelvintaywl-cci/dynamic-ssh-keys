@@ -32,7 +32,7 @@ jobs:
             # check
             jq '.' payload.json
 
-            curl -H "Circle-Token: $CIRCLE_TOKEN" \
+            curl -s -f -H "Circle-Token: $CIRCLE_TOKEN" \
               -H "Content-Type: application/json" \
               -X DELETE \
               -d @payload.json \
