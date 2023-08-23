@@ -1,0 +1,45 @@
+version: 2.1
+
+parameters:
+  fingerprint:
+    type: string
+    default: ''
+
+jobs:
+  use_key:
+    parameters:
+      ssh_key_fingerprint:
+        type: string
+        default: ''
+    docker:
+      - image: cimg/base:current
+    resource_class: medium
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - << parameters.ssh_key_fingerprint >>
+      - run: echo "do something with this key"
+      - run:
+          name: delete SSH key when done
+          command: |
+            SSH_KEY_HOSTNAME=example.com
+            SSH_KEY_FINGERPRINT='<< parameters.ssh_key_fingerprint >>'
+
+            # create JSON payload
+            jq --null-input --arg fingerprint $SSH_KEY_FINGERPRINT '.fingerprint=$fingerprint' | jq --arg host $SSH_KEY_HOSTNAME '.hostname=$host' > payload.json
+
+            # check
+            jq '.' payload.json
+
+            curl -H "Circle-Token: $CIRCLE_TOKEN" \
+              -H "Content-Type: application/json" \
+              -X DELETE \
+              -d @payload.json \
+              "https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/ssh-key"
+
+workflows:
+  use_key:
+    when: << pipeline.parameters.fingerprint >>
+    jobs:
+      - use_key:
+          ssh_key_fingerprint: << pipeline.parameters.fingerprint >>
